@@ -39,7 +39,8 @@ if st.sidebar.button("Injest"):
             try:
                 with st.spinner("Azure connection is creating....."):
                     azure_data_download(AZURE_CONNECTION_STRING=AZURE_CONNECTION_STRING, CONTAINER_NAME=CONTAINER_NAME)
-                st.session_state.pages = file_to_chunks("Azure_data")
+                with st.spinner("Azure Folder documents to chunks are in the process.........."):
+                    st.session_state.pages = file_to_chunks("Azure_data")
                 with st.spinner("Chroma VectorDatabse is creating....."):
                     st.session_state.db = Chroma.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="Azure_Chroma_db")
                 st.success("Chroma VectorDatabse is created successfully in the Azure_Chroma_db")
@@ -57,9 +58,10 @@ if st.sidebar.button("Injest"):
             try:
                 with st.spinner("AWS connection is creating....."):
                     aws(AWS_ACCESS_KEY_ID=aws_access_key, AWS_SECRET_ACCESS_KEY=aws_secret_access_key, BUCKET_NAME=bucket_name, object_name=object_name)
-                pages = file_to_chunks()
+                with st.spinner("AWS Folder documents to chunks are in the process.........."):
+                    st.session_state.pages = file_to_chunks()
                 with st.spinner("Chroma VectorDatabse is creating....."):
-                    db = Chroma.from_documents(pages, OpenAIEmbeddings(), persist_directory="AWS_Chroma_db")
+                    st.session_state.db = Chroma.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="AWS_Chroma_db")
                 st.success("Chroma VectorDatabse is created successfully in the AWS_Chroma_db folder")
             except Exception as e:
                 st.error(f"Error in connecting with AWS: {str(e)}")

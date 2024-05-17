@@ -66,3 +66,10 @@ To replicate and run this project, follow these steps:
 
 5. **Access the Application**
    - Open your web browser and navigate to `http://localhost:8501` to view the application.
+
+
+# Demo
+
+## For Local_data:
+
+## For Azure_data:
