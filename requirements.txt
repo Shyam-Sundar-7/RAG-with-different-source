@@ -10,3 +10,7 @@ pypdf
 sentence-transformers
 langchain-openai
 rank_bm25
+langchain_chroma
+unstructured
+python-pptx
+docx2txt
