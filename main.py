@@ -1,5 +1,5 @@
 import streamlit as st
-from helper import aws,file_to_chunks,azure_data_download,main
+from helper import aws,file_to_chunks,azure_data_download,main,generate_queries
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 st.title("RAG with different source")
@@ -53,12 +53,21 @@ if st.sidebar.button("Injest"):
                 st.session_state.db = Chroma.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="Local_Chroma_db")
             st.success("Chroma VectorDatabse is created successfully in the Local_Chroma_db folder")
     elif add_selectbox == "AWS S3 Bucket":
-        st.write("AWS S3 Bucket")
-        st.write(aws_access_key)
-        st.write(aws_secret_access_key)
-        st.write(bucket_name)
-        st.write(object_name)
+        with st.sidebar:
+            try:
+                with st.spinner("AWS connection is creating....."):
+                    aws(AWS_ACCESS_KEY_ID=aws_access_key, AWS_SECRET_ACCESS_KEY=aws_secret_access_key, BUCKET_NAME=bucket_name, object_name=object_name)
+                pages = file_to_chunks()
+                with st.spinner("Chroma VectorDatabse is creating....."):
+                    db = Chroma.from_documents(pages, OpenAIEmbeddings(), persist_directory="AWS_Chroma_db")
+                st.success("Chroma VectorDatabse is created successfully in the AWS_Chroma_db folder")
+            except Exception as e:
+                st.error(f"Error in connecting with AWS: {str(e)}")
+    else:
+        st.warning("Please provide AWS CREDENTIALS.")
+
     st.session_state.injest = True
+    # st.session_state
 
 
 
@@ -68,22 +77,26 @@ if "messages" not in st.session_state:
 if "injest" not in st.session_state:
     st.session_state.injest = False
 if "pages" not in st.session_state:
-    st.session_state.pages = []
+    st.session_state.pages = None
 if "db" not in st.session_state:
-    st.session_state.db = []  
+    st.session_state.db = None  
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+prompt = st.chat_input("Lets have a chat with our document")
 # React to user input
-if prompt := st.chat_input("Lets have a chat with our document") and st.session_state.injest:
+if prompt and st.session_state.injest:
     # Display user message in chat message container
     st.chat_message("user").markdown(prompt)
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
-    answer=main(prompt,chunks=st.session_state.pages,db=st.session_state.db)
+    # Generate assistant response
+    questions=generate_queries().invoke(prompt)
+    with st.spinner(f"Different types of questions are \n{'\n'.join(questions)}\n"):
+        answer=main(prompt,chunks=st.session_state.pages,db=st.session_state.db)
     response = f"{answer}"
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
