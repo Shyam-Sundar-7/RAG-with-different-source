@@ -1,0 +1,12 @@
+streamlit
+chromadb
+azure-storage-blob
+boto3
+python-dotenv
+langchain
+langchain-community
+openai
+pypdf
+sentence-transformers
+langchain-openai
+rank_bm25
