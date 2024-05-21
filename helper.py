@@ -84,7 +84,7 @@ def aws(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, BUCKET_NAME,object_name):
             s3.download_file(BUCKET_NAME, i['Key'], file_path)
 
 
-def generate_queries():
+def generate_queries(query):
         
     # Multi Query: Different Perspectives
     template = """You are an AI language model assistant. Your task is to generate Four 
@@ -100,16 +100,29 @@ def generate_queries():
         | ChatOpenAI(temperature=0) 
         | StrOutputParser() 
         | (lambda x: x.split("\n"))
+        | (lambda x: [query] + x)
     )
     return generate_querie 
 
+def _get(a):
+    dd=[]
+    for s in a:
+        dd.extend(s)
+    return dd
 
-def _get_docs(m):
-    docs=[]
-    docs.extend(m['original'])
-    for i in m['new']:
-        docs.extend(i)
-    return docs
+def get_unique_documents(doc_list):
+    seen_content = set()
+    unique_documents = []
+    
+    for doc in doc_list:
+        content = doc.page_content
+        if content not in seen_content:
+            seen_content.add(content)
+            unique_documents.append(doc)
+    
+    del seen_content
+    
+    return unique_documents
 
 def keyword_extractor():
     prompt="""
@@ -127,17 +140,17 @@ def keyword_extractor():
     return generate_querie
 
 def main(Query,chunks,db):
+    
     faiss_retriever=db.as_retriever(search_kwargs={'k': 10})
-
-    original_question= faiss_retriever
-    retrieval_chain =  generate_queries() | faiss_retriever.map()
-    map_chain = RunnableParallel(original=original_question,new=retrieval_chain) | _get_docs
 
     Bm25_retriever = BM25Retriever.from_documents(chunks)
     Bm25_retriever.k = 10
 
+    map_chain=generate_queries | faiss_retriever.map() | _get | get_unique_documents
+    key_chain=keyword_extractor() | Bm25_retriever | get_unique_documents
+
     ensemble_retriever = EnsembleRetriever(
-    retrievers=[Bm25_retriever, map_chain], weights=[0.5, 0.5]
+    retrievers=[map_chain, key_chain], weights=[0.25, 0.75]
     )
 
     model = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
@@ -153,9 +166,13 @@ def main(Query,chunks,db):
 
     final_prompt_perspectives=ChatPromptTemplate.from_template(final_prompt)
 
-    llm_chain2=({"context": itemgetter("query") | compression_retriever,
-              "question":itemgetter("query")}
-             | final_prompt_perspectives
-             | ChatOpenAI(temperature=0) | StrOutputParser() )
+    llm_chain= ({"context": itemgetter("query") | compression_retriever,
+            "question":itemgetter("query")}
+            | 
+            RunnableParallel({
+                "response":  final_prompt_perspectives | ChatOpenAI(temperature=0) | StrOutputParser() ,
+                "context": itemgetter("context")
+            })
+            )
     
-    return llm_chain2.invoke({"query":Query})
+    return llm_chain.invoke({"query":Query})

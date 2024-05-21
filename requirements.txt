@@ -14,3 +14,4 @@ langchain_chroma
 unstructured
 python-pptx
 docx2txt
+grandalf

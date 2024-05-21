@@ -1,9 +1,17 @@
 import streamlit as st
-from helper import aws,file_to_chunks,azure_data_download,main,generate_queries
+from helper import aws,file_to_chunks,azure_data_download,main,generate_queries,keyword_extractor
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 st.title("RAG with different source")
 import time
+
+def meta(s):
+    f=[]
+    for i in s:
+        f.append(f"Page : {i.metadata['page']} , Source : {i.metadata['source']}")
+    return f
+
+
 # Using object notation
 add_selectbox = st.sidebar.selectbox(
     "Which data source you are using?",
@@ -96,10 +104,15 @@ if prompt and st.session_state.injest:
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
     # Generate assistant response
-    questions=generate_queries().invoke(prompt)
-    with st.spinner(f"Different types of questions are \n{'\n'.join(questions)}\n"):
-        answer=main(prompt,chunks=st.session_state.pages,db=st.session_state.db)
-    response = f"{answer}"
+    questions=generate_queries(prompt).invoke(prompt)
+    keywords=keyword_extractor().invoke(prompt)
+    with st.spinner(f"""Creative Query from the original question \n{'\n'.join(questions[1:])} \n\n Keywords from the original question \n\n{keywords}\n"""):
+        questions.append(prompt)
+
+        answer_dict=main(prompt,chunks=st.session_state.pages,db=st.session_state.db)
+        answer=answer_dict["response"]
+        metadata=meta(answer_dict["context"])
+    response = f"{answer} \n\n\n Metadata: \n\n{'\n\n'.join(metadata)}"
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         st.markdown(response)
