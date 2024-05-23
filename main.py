@@ -2,13 +2,16 @@ import streamlit as st
 from helper import aws,file_to_chunks,azure_data_download,main,generate_queries,keyword_extractor
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
 st.title("RAG with different source")
 import time
-
 def meta(s):
     f=[]
     for i in s:
-        f.append(f"Page : {i.metadata['page']} , Source : {i.metadata['source']}")
+        d=""
+        for i,y in i.metadata.items():
+            d=d+f"{i} : {y} \n"
+        f.append(d)
     return f
 
 
@@ -28,7 +31,7 @@ elif add_selectbox == "Local storage":
     st.sidebar.write("You selected Local storage.")
     LOCAL_PATH = st.sidebar.selectbox(
     "Local Path",
-    ("Local_data","NIL"),
+    ("Local_data","Local stored Vectorstore DB"),
     index=None,
     placeholder="Select contact method...",
 )
@@ -50,7 +53,7 @@ if st.sidebar.button("Injest"):
                 with st.spinner("Azure Folder documents to chunks are in the process.........."):
                     st.session_state.pages = file_to_chunks("Azure_data")
                 with st.spinner("VectorDatabse is creating....."):
-                    st.session_state.db = Chroma.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="Azure_Chroma_db")
+                    st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings())
                 st.success("VectorDatabse is created successfully in the Azure_Chroma_db")
             except Exception as e:
                 st.error(f"Error connecting with Azure: {str(e)}")
@@ -59,8 +62,15 @@ if st.sidebar.button("Injest"):
             with st.spinner("Local Folder documents to chunks are in the process.........."):
                 st.session_state.pages = file_to_chunks("Local_data")
             with st.spinner("VectorDatabse is creating....."):
-                st.session_state.db = Chroma.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="Local_Chroma_db")
-            st.success("VectorDatabse is created successfully in the Local_Chroma_db folder")
+                st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings())
+            st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
+    elif add_selectbox == "Local storage" and LOCAL_PATH == "Local stored Vectorstore DB":
+        with st.sidebar:
+            with st.spinner("Local Folder documents to chunks are in the process.........."):
+                st.session_state.pages = file_to_chunks("Local_data")
+            with st.spinner("VectorDatabse is Loading....."):
+                st.session_state.db =  FAISS.load_local("Local_vectorstore", OpenAIEmbeddings(),allow_dangerous_deserialization=True)
+            st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
     elif add_selectbox == "AWS S3 Bucket":
         with st.sidebar:
             try:
@@ -69,7 +79,7 @@ if st.sidebar.button("Injest"):
                 with st.spinner("AWS Folder documents to chunks are in the process.........."):
                     st.session_state.pages = file_to_chunks()
                 with st.spinner("VectorDatabse is creating....."):
-                    st.session_state.db = Chroma.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="AWS_Chroma_db")
+                    st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="AWS_Chroma_db")
                 st.success("VectorDatabse is created successfully in the AWS_Chroma_db folder")
             except Exception as e:
                 st.error(f"Error in connecting with AWS: {str(e)}")
