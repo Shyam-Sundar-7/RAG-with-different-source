@@ -36,9 +36,10 @@ def load_file(file_name):
     elif file_name.split('.')[-1] == "html":
         loader = UnstructuredHTMLLoader(file_name).load()
     text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=300,
-            chunk_overlap=0,
-            is_separator_regex=False,
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len,
+        is_separator_regex=False
         )
     pages = text_splitter.split_documents(loader)
     return pages
@@ -151,7 +152,7 @@ def main(Query,chunks,db):
     key_chain=keyword_extractor() | Bm25_retriever | get_unique_documents
 
     ensemble_retriever = EnsembleRetriever(
-    retrievers=[map_chain, key_chain], weights=[0.25, 0.75]
+    retrievers=[map_chain, key_chain], weights=[0.5, 0.5]
     )
 
     model = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")

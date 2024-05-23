@@ -119,7 +119,7 @@ if prompt and st.session_state.injest:
         answer_dict=main(prompt,chunks=st.session_state.pages,db=st.session_state.db)
         answer=answer_dict["response"]
         metadata=[]
-        if answer =="I don't know.":
+        if "I don't" in answer:
             metadata=["No relevant Documents correspond to the question. Please try with different query."]
         else:
             metadata=meta(answer_dict["context"])
