@@ -26,7 +26,7 @@ import shutil
 
 def load_file(file_name):
     loader=[]
-    print(file_name.split(".")[-1])
+    # print(file_name.split(".")[-1])
     if file_name.split('.')[-1] == "pptx":
         loader = UnstructuredPowerPointLoader(file_name).load()
     elif file_name.split('.')[-1] == "pdf":
@@ -37,10 +37,7 @@ def load_file(file_name):
         loader = UnstructuredHTMLLoader(file_name).load()
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len,
-        is_separator_regex=False
-        )
+        chunk_overlap=300)
     pages = text_splitter.split_documents(loader)
     return pages
 

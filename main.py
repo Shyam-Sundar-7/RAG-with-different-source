@@ -3,8 +3,11 @@ from helper import aws,file_to_chunks,azure_data_download,main,generate_queries,
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
+import pickle
+import json
+
 st.title("RAG with different source")
-import time
+
 def meta(s):
     f=[]
     for i in s:
@@ -29,12 +32,10 @@ if add_selectbox == "Azure Blob Storage":
     CONTAINER_NAME = st.sidebar.text_input("Azure Container Name")
 elif add_selectbox == "Local storage":
     st.sidebar.write("You selected Local storage.")
-    LOCAL_PATH = st.sidebar.selectbox(
-    "Local Path",
-    ("Local_data","Local stored Vectorstore DB"),
-    index=None,
-    placeholder="Select contact method...",
-)
+    LOCAL_PATH = st.sidebar.selectbox("Local Path",
+                                    ("Local_data","Local stored Vectorstore DB"),
+                                    index=None,
+                                    placeholder="Select contact method...")
 elif add_selectbox == "AWS S3 Bucket":
     aws_access_key = st.sidebar.text_input("AWS Access Key",type="password")
     aws_secret_access_key = st.sidebar.text_input("AWS SECRET ACCESS KEY",type="password")
@@ -60,14 +61,15 @@ if st.sidebar.button("Injest"):
     elif add_selectbox == "Local storage" and LOCAL_PATH == "Local_data":
         with st.sidebar:
             with st.spinner("Local Folder documents to chunks are in the process.........."):
-                st.session_state.pages = file_to_chunks("Local_data")
+                st.session_state.pages = file_to_chunks("Local_data")   
             with st.spinner("VectorDatabse is creating....."):
                 st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings())
             st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
     elif add_selectbox == "Local storage" and LOCAL_PATH == "Local stored Vectorstore DB":
         with st.sidebar:
-            with st.spinner("Local Folder documents to chunks are in the process.........."):
-                st.session_state.pages = file_to_chunks("Local_data")
+            with st.spinner("Chunked documents are loading..........."):
+                with open("pages.pkl", "rb") as f:
+                    pages1 = pickle.load(f)
             with st.spinner("VectorDatabse is Loading....."):
                 st.session_state.db =  FAISS.load_local("Local_vectorstore", OpenAIEmbeddings(),allow_dangerous_deserialization=True)
             st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
@@ -109,6 +111,12 @@ prompt = st.chat_input("Lets have a chat with our document")
 # React to user input
 if prompt and st.session_state.injest:
     # Display user message in chat message container
+    # specify the file path to save the JSON
+    # open the file in write mode
+    with open("history.json", "w") as file:
+        # write the JSON data to the file
+        json.dump(st.session_state.messages, file)
+
     st.chat_message("user").markdown(prompt)
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
