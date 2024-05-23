@@ -79,7 +79,7 @@ if st.sidebar.button("Injest"):
                 with st.spinner("AWS Folder documents to chunks are in the process.........."):
                     st.session_state.pages = file_to_chunks()
                 with st.spinner("VectorDatabse is creating....."):
-                    st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings(), persist_directory="AWS_Chroma_db")
+                    st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings())
                 st.success("VectorDatabse is created successfully in the AWS_Chroma_db folder")
             except Exception as e:
                 st.error(f"Error in connecting with AWS: {str(e)}")
