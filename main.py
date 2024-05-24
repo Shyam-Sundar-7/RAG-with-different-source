@@ -1,5 +1,5 @@
 import streamlit as st
-from helper import aws,file_to_chunks,azure_data_download,main,generate_queries,keyword_extractor
+from helper1 import aws,file_to_chunks,azure_data_download,main,generate_queries_with_history,keyword_extractor_with_history
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -121,8 +121,8 @@ if prompt and st.session_state.injest:
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
     # Generate assistant response
-    questions=generate_queries(prompt).invoke(prompt)
-    keywords=keyword_extractor().invoke(prompt)
+    questions=generate_queries_with_history(prompt).invoke(prompt)
+    keywords=keyword_extractor_with_history().invoke(prompt)
     with st.spinner(f"""Creative Query from the original question \n{'\n'.join(questions[1:])} \n\n Keywords from the original question \n\n{keywords}\n"""):
         answer_dict=main(prompt,chunks=st.session_state.pages,db=st.session_state.db)
         answer=answer_dict["response"]
@@ -131,9 +131,9 @@ if prompt and st.session_state.injest:
             metadata=["No relevant Documents correspond to the question. Please try with different query."]
         else:
             metadata=meta(answer_dict["context"])
-    response = f"{answer} \n\n\n Metadata: \n\n{'\n\n'.join(metadata)}"
+    response = f"{answer}"
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
-        st.markdown(response)
+        st.markdown(response + "\n\n\n Metadata: \n\n{'\n\n'.join(metadata)}")
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
