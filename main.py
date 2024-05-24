@@ -123,7 +123,7 @@ if prompt and st.session_state.injest:
     # Generate assistant response
     questions=generate_queries_with_history(prompt).invoke(prompt)
     keywords=keyword_extractor_with_history().invoke(prompt)
-    with st.spinner(f"""Creative Query from the original question \n{'\n'.join(questions[1:])} \n\n Keywords from the original question \n\n{keywords}\n"""):
+    with st.spinner(f"""Creative Query from the original question \n\n{'\n'.join(questions[1:])} \n\n Keywords from the original question \n\n{keywords}\n"""):
         answer_dict=main(prompt,chunks=st.session_state.pages,db=st.session_state.db)
         answer=answer_dict["response"]
         metadata=[]
@@ -134,6 +134,6 @@ if prompt and st.session_state.injest:
     response = f"{answer}"
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
-        st.markdown(response + "\n\n\n Metadata: \n\n{'\n\n'.join(metadata)}")
+        st.markdown(f"{response}\n\n\n Metadata: \n\n{'\n\n'.join(metadata)}")
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})

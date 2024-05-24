@@ -91,13 +91,13 @@ def formating_history(h):
         d = "No history found"
     return d
 
-def generate_queries_with_history():
+def generate_queries_with_history(query):
     import json
     with open("history.json", "rb") as f:
         h_1 = json.load(f)
     h_1=formating_history(h_1)
 
-    prompt = """You are an AI language model assistant. Your task is to generate 5 different versions of the given user question to retrieve relevant documents from a vector database. By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of the distance-based similarity search.
+    prompt = """You are an AI language model assistant. Your task is to generate 4 different versions of the given user question to retrieve relevant documents from a vector database. By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of the distance-based similarity search.
         Additionally, look for the relevant information from the history to provide more contextually accurate variations. Provide these alternative questions separated by newlines.
         
         history : """+ h_1
@@ -113,7 +113,7 @@ def generate_queries_with_history():
         | ChatOpenAI(temperature=0) 
         | StrOutputParser() 
         | (lambda x: x.split("\n"))
-        # | (lambda x: [query] + x)
+        | (lambda x: [query] + x)
     )
     return generate_querie 
 
@@ -144,7 +144,7 @@ def keyword_extractor_with_history():
     h_1=formating_history(h_1)
     prompt="""
     You are an AI language model assistant. Your task is to help the user identify key terms in their query.
-    Please list the main keywords you want to extract from your query.
+    Please list the main keywords you want to extract from your query.Extract top 10 keywords.
 
     Additionally, look for the relevant information from the history to provide more contextually accurate variations.
     history : """ + h_1
