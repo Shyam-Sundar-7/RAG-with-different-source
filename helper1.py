@@ -107,7 +107,7 @@ def generate_queries_with_history(query):
     # print(template)
     # print(h_1)
     prompt_perspectives = ChatPromptTemplate.from_template(template)
-    print(prompt_perspectives)
+    # print(prompt_perspectives)
     generate_querie = (
         prompt_perspectives
         | ChatOpenAI(temperature=0) 
@@ -153,7 +153,7 @@ def keyword_extractor_with_history():
     query: {query}
     """
     prompt_perspectives=ChatPromptTemplate.from_template(tem)
-    print(prompt_perspectives)
+    # print(prompt_perspectives)
     generate_querie = (
         prompt_perspectives 
         | ChatOpenAI(temperature=0) 
