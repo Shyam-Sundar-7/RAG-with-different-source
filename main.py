@@ -69,7 +69,7 @@ if st.sidebar.button("Injest"):
         with st.sidebar:
             with st.spinner("Chunked documents are loading..........."):
                 with open("pages.pkl", "rb") as f:
-                    pages1 = pickle.load(f)
+                    st.session_state.pages = pickle.load(f)
             with st.spinner("VectorDatabse is Loading....."):
                 st.session_state.db =  FAISS.load_local("Local_vectorstore", OpenAIEmbeddings(),allow_dangerous_deserialization=True)
             st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
