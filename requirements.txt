@@ -16,3 +16,4 @@ python-pptx
 faiss-cpu
 docx2txt
 grandalf
+streamlit-authenticator

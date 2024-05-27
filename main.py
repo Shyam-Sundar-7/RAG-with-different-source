@@ -21,7 +21,7 @@ def meta(s):
 # Using object notation
 add_selectbox = st.sidebar.selectbox(
     "Which data source you are using?",
-    ("Azure Blob Storage", "Local storage","AWS S3 Bucket"),
+    ("Azure Blob Storage", "Local storage","AWS S3 Bucket","Locally stored Vectorstore DB"),
     index=None,
     placeholder="Select contact method...",
 )
@@ -33,7 +33,7 @@ if add_selectbox == "Azure Blob Storage":
 elif add_selectbox == "Local storage":
     st.sidebar.write("You selected Local storage.")
     LOCAL_PATH = st.sidebar.selectbox("Local Path",
-                                    ("Local_data","Local stored Vectorstore DB"),
+                                    ("Local_data","NIL"),
                                     index=None,
                                     placeholder="Select contact method...")
 elif add_selectbox == "AWS S3 Bucket":
@@ -41,6 +41,8 @@ elif add_selectbox == "AWS S3 Bucket":
     aws_secret_access_key = st.sidebar.text_input("AWS SECRET ACCESS KEY",type="password")
     bucket_name= st.sidebar.text_input("AWS BUCKET NAME")
     object_name= st.sidebar.text_input("AWS OBJECT NAME")
+elif add_selectbox == "Locally stored Vectorstore DB":
+    vectorstore_name = st.sidebar.text_input("Vectorstore db Name")
 else:
     st.sidebar.write("You selected nothing.")
 
@@ -58,22 +60,25 @@ if st.sidebar.button("Injest"):
                 st.success("VectorDatabse is created successfully in the Azure_Chroma_db")
             except Exception as e:
                 st.error(f"Error connecting with Azure: {str(e)}")
-    elif add_selectbox == "Local storage" and LOCAL_PATH == "Local_data":
+    elif add_selectbox == "Local storage":
         with st.sidebar:
             with st.spinner("Local Folder documents to chunks are in the process.........."):
                 st.session_state.pages = file_to_chunks("Local_data")   
             with st.spinner("VectorDatabse is creating....."):
                 st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings())
             st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
-    elif add_selectbox == "Local storage" and LOCAL_PATH == "Local stored Vectorstore DB":
-        with st.sidebar:
-            with st.spinner("Chunked documents are loading..........."):
-                with open("pages.pkl", "rb") as f:
-                    st.session_state.pages = pickle.load(f)
-            with st.spinner("VectorDatabse is Loading....."):
-                st.session_state.db =  FAISS.load_local("Local_vectorstore", OpenAIEmbeddings(),allow_dangerous_deserialization=True)
-            st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
-    elif add_selectbox == "AWS S3 Bucket":
+    elif add_selectbox == "Locally stored Vectorstore DB":
+        if vectorstore_name=="db_001":
+            with st.sidebar:
+                with st.spinner("Chunked documents are loading..........."):
+                    with open("pages.pkl", "rb") as f:
+                        st.session_state.pages = pickle.load(f)
+                with st.spinner("VectorDatabse is Loading....."):
+                    st.session_state.db =  FAISS.load_local(vectorstore_name, OpenAIEmbeddings(),allow_dangerous_deserialization=True)
+                st.success("VectorDatabse is created successfully in the Local_vectorstore folder")
+        else:
+            st.warning(f"There is no vectorstore with name {vectorstore_name} in the Current folder")
+    else:
         with st.sidebar:
             try:
                 with st.spinner("AWS connection is creating....."):
@@ -85,8 +90,6 @@ if st.sidebar.button("Injest"):
                 st.success("VectorDatabse is created successfully in the AWS_Chroma_db folder")
             except Exception as e:
                 st.error(f"Error in connecting with AWS: {str(e)}")
-    else:
-        st.warning("Please provide AWS CREDENTIALS.")
 
     st.session_state.injest = True
     # st.session_state
