@@ -79,3 +79,9 @@ To replicate and run this project, follow these steps:
 
 ## Complete Demo with history of chats and gaurdrials
 [![complete_demo]](https://github.com/shyamsundar009/RAG-with-different-source/assets/167984593/79eeff6c-23dc-4a69-987d-6f36f4934fbe)
+
+## With login and authentication
+
+- The session history gets deleted once the user is logged out.
+
+[![With_Login]](https://github.com/shyamsundar009/RAG-with-different-source/assets/167984593/b5491180-ab0e-437a-8339-ad96eee0bdb8)
