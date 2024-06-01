@@ -84,7 +84,7 @@ if st.sidebar.button("Injest"):
                 with st.spinner("AWS connection is creating....."):
                     aws(AWS_ACCESS_KEY_ID=aws_access_key, AWS_SECRET_ACCESS_KEY=aws_secret_access_key, BUCKET_NAME=bucket_name, object_name=object_name)
                 with st.spinner("AWS Folder documents to chunks are in the process.........."):
-                    st.session_state.pages = file_to_chunks()
+                    st.session_state.pages = file_to_chunks("S3_data")
                 with st.spinner("VectorDatabse is creating....."):
                     st.session_state.db = FAISS.from_documents(st.session_state.pages, OpenAIEmbeddings())
                 st.success("VectorDatabse is created successfully in the AWS_Chroma_db folder")
