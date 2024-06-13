@@ -84,4 +84,9 @@ To replicate and run this project, follow these steps:
 
 - The session history gets deleted once the user is logged out.
 
+**Run the Streamlit Application**
+   ```bash
+   streamlit run with_login.py
+   ```
+
 [![With_Login]](https://github.com/shyamsundar009/RAG-with-different-source/assets/167984593/b5491180-ab0e-437a-8339-ad96eee0bdb8)
